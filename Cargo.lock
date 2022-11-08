@@ -3,5 +3,5 @@
 version = 3
 
 [[package]]
-name = "pe-parser"
+name = "pehp"
 version = "0.1.0"

@@ -2,6 +2,7 @@
 #![allow(unused_variables)]
 
 use std::fmt;
+use std::vec::Vec;
 
 // Structures definitions
 
@@ -33,6 +34,30 @@ pub struct DOSHeaders {
     pub offset_to_pe_headers: u32,
 }
 
+#[derive(Debug)]
+pub enum CharacteristicsVal {
+    IMAGE_FILE_RELOCS_STRIPPED = 0x0001,
+    IMAGE_FILE_EXECUTABLE_IMAGE = 0x0002,
+    IMAGE_FILE_LINE_NUMS_STRIPPED = 0x0004,
+    IMAGE_FILE_LOCAL_SYMS_STRIPPED = 0x0008,
+    IMAGE_FILE_AGGRESSIVE_WS_TRIM = 0x0010,
+    IMAGE_FILE_LARGE_ADDRESS_AWARE = 0x0020,
+    IMAGE_FILE_BYTES_REVERSED_LO = 0x0080,
+    IMAGE_FILE_32BIT_MACHINE = 0x0100,
+    IMAGE_FILE_DEBUG_STRIPPED = 0x0200,
+    IMAGE_FILE_REMOVABLE_RUN_FROM_SWAP = 0x0400,
+    IMAGE_FILE_NET_RUN_FROM_SWAP = 0x0800,
+    IMAGE_FILE_SYSTEM = 0x1000,
+    IMAGE_FILE_DLL = 0x2000,
+    IMAGE_FILE_UP_SYSTEM_ONLY = 0x4000,
+    IMAGE_FILE_BYTES_REVERSED_HI = 0x8000,
+}
+
+pub struct Characteristics {
+    pub value: u16,
+    pub characteristics_list: Vec<CharacteristicsVal>,
+}
+
 pub struct COFFHeaders { 
     pub magic: u32,
     pub target_machine: u16,
@@ -41,7 +66,7 @@ pub struct COFFHeaders {
     pub pointer_to_symbol_table: u32,
     pub number_of_symbols: u32,
     pub size_of_optional_headers: u16,
-    pub characteristics: u16,
+    pub characteristics: Characteristics,
 }
 
 pub struct OptionalHeaders {
@@ -97,6 +122,7 @@ pub struct DataDirectory {
     pub size: u32,
 }
 
+
 // Default trait implementation for the structs
 
 impl Default for Headers {
@@ -135,6 +161,15 @@ impl Default for DOSHeaders {
     }
 }
 
+impl Default for Characteristics {
+    fn default() -> Characteristics { 
+        Characteristics {
+            characteristics_list: Vec::new(),
+            value: 0,
+        }
+    }
+}
+
 impl Default for COFFHeaders {
     fn default() -> COFFHeaders {
         COFFHeaders {
@@ -145,7 +180,7 @@ impl Default for COFFHeaders {
             pointer_to_symbol_table: 0,
             number_of_symbols: 0,
             size_of_optional_headers: 0,
-            characteristics: 0,
+            characteristics: Characteristics::default(),
         }
     }
 }
@@ -221,6 +256,32 @@ impl Default for DataDirectory {
     }
 }
 
+// TryFrom implementation for structs
+
+impl CharacteristicsVal {
+    pub fn from_u16(val: u16) -> CharacteristicsVal {
+        match val {
+            0x0001 => CharacteristicsVal::IMAGE_FILE_RELOCS_STRIPPED,
+            0x0002 => CharacteristicsVal::IMAGE_FILE_EXECUTABLE_IMAGE,
+            0x0004 => CharacteristicsVal::IMAGE_FILE_LINE_NUMS_STRIPPED,
+            0x0008 => CharacteristicsVal::IMAGE_FILE_LOCAL_SYMS_STRIPPED,
+            0x0010 => CharacteristicsVal::IMAGE_FILE_AGGRESSIVE_WS_TRIM ,
+            0x0020 => CharacteristicsVal::IMAGE_FILE_LARGE_ADDRESS_AWARE,
+            0x0080 => CharacteristicsVal::IMAGE_FILE_BYTES_REVERSED_LO,
+            0x0100 => CharacteristicsVal::IMAGE_FILE_32BIT_MACHINE,
+            0x0200 => CharacteristicsVal::IMAGE_FILE_DEBUG_STRIPPED,
+            0x0400 => CharacteristicsVal::IMAGE_FILE_REMOVABLE_RUN_FROM_SWAP,
+            0x0800 => CharacteristicsVal::IMAGE_FILE_NET_RUN_FROM_SWAP,
+            0x1000 => CharacteristicsVal::IMAGE_FILE_SYSTEM,
+            0x2000 => CharacteristicsVal::IMAGE_FILE_DLL,
+            0x4000 => CharacteristicsVal::IMAGE_FILE_UP_SYSTEM_ONLY,
+            0x8000 => CharacteristicsVal::IMAGE_FILE_BYTES_REVERSED_HI,
+            _ => panic!("Failed to convert to CharacteristicsVal"),
+        }
+    }
+}
+
+
 // Display trait implementation for the structs
 
 impl fmt::Display for Headers {
@@ -272,9 +333,8 @@ time_date_stamp: 0x{:x}
 pointer_to_symbol_table: 0x{:x}
 number_of_symbols: 0x{:x}
 size_of_optional_headers: 0x{:x}
-characteristics: 0x{:x}
 ---------------------------", 
-        self.magic, self.target_machine, self.number_of_sections, self.time_date_stamp, self.pointer_to_symbol_table, self.number_of_symbols, self.size_of_optional_headers, self.characteristics)
+        self.magic, self.target_machine, self.number_of_sections, self.time_date_stamp, self.pointer_to_symbol_table, self.number_of_symbols, self.size_of_optional_headers)
     }
 }
 
